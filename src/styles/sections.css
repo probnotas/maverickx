@@ -476,14 +476,15 @@ html.mode-zoom body {
 }
 
 /* The one window: the six files in reading order */
+/* Centred with inset + auto margins (no transform), so GSAP's slide-in and
+   dragging can't knock it off centre. */
 .mode-zoom .os__win--folder {
   position: absolute;
-  left: 50%;
-  top: 47%;
+  inset: 0;
   width: 84%;
-  height: auto;
+  height: fit-content;
   max-height: 80%;
-  transform: translate(-50%, -50%);
+  margin: auto;
 }
 .mode-zoom .os__trash {
   position: absolute;
@@ -1381,4 +1382,14 @@ html.mode-zoom body {
   .b-flow ol {
     grid-template-columns: 1fr;
   }
+}
+
+/* While a window is being dragged */
+.mw.is-dragging,
+.mw.is-dragging * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.mode-zoom .mw.is-dragging .mw__bar {
+  cursor: grabbing;
 }

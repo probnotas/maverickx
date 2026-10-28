@@ -115,29 +115,60 @@ export function setupDesktop(os: HTMLElement, onShutdown: () => void) {
     if (w) w.style.zIndex = String(++z);
   });
 
-  // Drag windows by their title bar (zoom mode only)
+  // Drag windows by their title bar (zoom mode only). One drag at a time; it
+  // ends on release, cancel, lost capture, or as soon as no button is held,
+  // so a window can never keep following the cursor.
+  let drag: { w: HTMLElement; id: number; dx: number; dy: number; box: DOMRect; width: number } | null = null;
+
+  const endDrag = () => {
+    if (!drag) return;
+    drag.w.classList.remove("is-dragging");
+    drag = null;
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", endDrag);
+    window.removeEventListener("pointercancel", endDrag);
+    window.removeEventListener("blur", endDrag);
+  };
+
+  const onMove = (ev: PointerEvent) => {
+    if (!drag || ev.pointerId !== drag.id) return;
+    if (ev.buttons === 0) return endDrag();
+    const { w, dx, dy, box, width } = drag;
+    const x = Math.min(Math.max(ev.clientX - box.left - dx, -width + 80), box.width - 80);
+    const y = Math.min(Math.max(ev.clientY - box.top - dy, 0), box.height - 30);
+    w.style.left = `${x}px`;
+    w.style.top = `${y}px`;
+  };
+
   os.addEventListener("pointerdown", (e) => {
-    const bar = (e.target as HTMLElement).closest<HTMLElement>(".mw__bar");
-    if (!bar || (e.target as HTMLElement).closest(".mw__close") || !html.classList.contains("mode-zoom")) return;
+    const t = e.target as HTMLElement;
+    const bar = t.closest<HTMLElement>(".mw__bar");
+    if (!bar || t.closest(".mw__close") || e.button !== 0 || !html.classList.contains("mode-zoom")) return;
+    e.preventDefault(); // no text selection while dragging
+    endDrag();
     const w = bar.parentElement as HTMLElement;
-    const box = os.getBoundingClientRect();
+    gsap.killTweensOf(w);
+    // Measure from the element the window is positioned in (the desktop area
+    // below the menu bar, or the windows layer), so grabbing never jumps.
+    const box = ((w.offsetParent as HTMLElement | null) ?? os).getBoundingClientRect();
     const r = w.getBoundingClientRect();
-    const dx = e.clientX - r.left;
-    const dy = e.clientY - r.top;
-    Object.assign(w.style, { left: `${r.left - box.left}px`, top: `${r.top - box.top}px`, right: "auto", bottom: "auto", width: `${r.width}px`, height: `${r.height}px`, transform: "none" });
-    bar.setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent) => {
-      const x = Math.min(Math.max(ev.clientX - box.left - dx, -r.width + 80), box.width - 80);
-      const y = Math.min(Math.max(ev.clientY - box.top - dy, 24), box.height - 30);
-      w.style.left = `${x}px`;
-      w.style.top = `${y}px`;
-    };
-    const up = () => {
-      bar.removeEventListener("pointermove", move);
-      bar.removeEventListener("pointerup", up);
-    };
-    bar.addEventListener("pointermove", move);
-    bar.addEventListener("pointerup", up);
+    // Pin the window where it is, in plain left/top pixels, with no transform
+    // or auto margins left over from its starting layout.
+    Object.assign(w.style, {
+      inset: "auto",
+      margin: "0",
+      left: `${r.left - box.left}px`,
+      top: `${r.top - box.top}px`,
+      width: `${r.width}px`,
+      height: `${r.height}px`,
+      transform: "none",
+    });
+    drag = { w, id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, box, width: r.width };
+    w.classList.add("is-dragging");
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+    window.addEventListener("blur", endDrag);
   });
 
   os.addEventListener("click", (e) => {
