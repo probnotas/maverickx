@@ -1,4 +1,4 @@
-import { footer, site, type Block, type ExpertQuote, type Table } from "../content";
+import { files, footer, site, type Block, type ExpertQuote, type Table } from "../content";
 import { rich } from "../rich";
 
 export const mailto = () =>
@@ -21,10 +21,10 @@ const table = (t: Table) => `
 // Names render only once a person has agreed to be named.
 const quote = (q: ExpertQuote) => `
   <figure class="b-quote">
-    <blockquote>${q.kind === "quote" ? `“${rich(q.quote)}”` : rich(q.quote)}</blockquote>
+    <blockquote>${q.kind === "quote" ? `“${rich(q.quote)}”` : rich(q.quote)}${q.context ? ` <span class="b-quote__context">${rich(q.context)}</span>` : ""}</blockquote>
     <figcaption>
-      ${q.permission === "named" ? `<strong>${rich(q.name)}</strong>` : ""}
-      <span>${rich(q.role)}</span>
+      ${q.permission === "named" ? `<strong class="b-quote__name">${rich(q.name)}</strong>` : ""}
+      <span class="b-quote__role">${rich(q.role)}</span>
       <span class="b-quote__org">${rich(q.org)}</span>
       ${q.kind === "paraphrase" ? `<em class="b-tag">${site.paraphraseTag}</em>` : ""}
     </figcaption>
@@ -79,6 +79,27 @@ export function block(b: Block): string {
       return `<div class="b-quotes">${b.items.map(quote).join("")}</div>${
         b.items.some((q) => q.permission === "role-only") ? `<p class="b-note">${rich(b.note)}</p>` : ""
       }`;
+    case "feature":
+      return `<figure class="b-feature">
+        <p class="label">${rich(b.label)}</p>
+        <blockquote>“${rich(b.quote)}”</blockquote>
+        <figcaption>${rich(b.who)}</figcaption>
+        <p>${rich(b.text)}</p>
+      </figure>`;
+    case "summary":
+      return `<div class="b-summary">${b.items
+        .map((it) => {
+          const f = files.find((x) => x.id === it.file)!;
+          return `<section class="b-sum">
+            <button class="b-sum__head" type="button" data-open="${f.id}"><span class="label">${rich(f.filename)}</span><span aria-hidden="true">→</span></button>
+            <h3 class="b-sum__title display">${rich(f.name)}</h3>
+            <p class="b-sum__thesis">${rich(it.thesis)}</p>
+            <div class="b-sum__stats">${it.stats
+              .map((st) => `<div><p class="b-sum__value display">${rich(st.value)}</p><p class="b-sum__label">${rich(st.label)}</p></div>`)
+              .join("")}</div>
+          </section>`;
+        })
+        .join("")}</div>`;
     case "callout":
       return `<aside class="b-callout"><p class="label">${rich(b.title)}</p><p>${rich(b.text)}</p></aside>`;
     case "people":

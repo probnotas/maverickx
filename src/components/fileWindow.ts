@@ -12,7 +12,10 @@ function fileBody(f: PitchFile, i: number): string {
   const nextQ = next ? next.question : footer.sourcesTitle;
   return `
     <p class="win__q label">${rich(f.question)}</p>
-    <h2 class="win__title">${rich(f.title)}</h2>
+    <h2 class="win__title">${rich(f.name)}</h2>
+    <p class="win__subtitle">${rich(f.subtitle)}</p>
+    <p class="win__thesis">${rich(f.thesis)}</p>
+    ${f.note ? `<p class="win__note">${rich(f.note)}</p>` : ""}
     ${f.blocks.map(block).join("")}
     <aside class="win__bottom"><p class="label">${rich(site.bottomLineLabel)}</p><p>${rich(f.bottomLine)}</p></aside>
     <button class="win__next" type="button" data-open="${nextId}">
@@ -66,7 +69,12 @@ export function setupWindows(os: HTMLElement, onOpen: (id: WindowId) => void = (
     // .os (a size container is the containing block for fixed children).
     const host = document.documentElement.classList.contains("mode-still") ? document.body : os;
     if (layer.parentElement !== host) host.append(layer);
-    layer.innerHTML = chrome(title, `<div class="mw__body win__body" tabindex="-1">${body}</div>`, {
+    const steps = `<nav class="win__steps" aria-label="${escape(site.stepsLabel)}">${files
+      .map(
+        (x) => `<button type="button" data-open="${x.id}"${x.id === id ? ' aria-current="page"' : ""}>${rich(x.filename)}</button>`,
+      )
+      .join("")}</nav>`;
+    layer.innerHTML = chrome(title, `${steps}<div class="mw__body win__body" tabindex="-1">${body}</div>`, {
       cls: "win",
       close: site.closeLabel,
       attrs: `role="dialog" aria-modal="true" aria-label="${escape(title)}"`,

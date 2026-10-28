@@ -5,7 +5,7 @@
  *
  * Rich text: wrap a number as [[visible text|sourceId]] and it renders as a
  * link to that source. sourceId "math" opens the Economics file (our
- * estimates); "test" opens the Plan file. Search for "TODO" before launch.
+ * estimates); "test" opens the Implementation file. Search for "TODO" before launch.
  */
 
 export type SourceId = keyof typeof sources;
@@ -18,7 +18,7 @@ export interface Source {
 export const sources = {
   // Panels (internal links for our own estimates)
   math: { label: "Our estimate, see 03 Economics", href: "#file-economics" },
-  test: { label: "Our proposal, see 05 Plan", href: "#file-plan" },
+  test: { label: "Our proposal, see 05 Implementation", href: "#file-plan" },
 
   // Titan / Teck
   titanQ2: {
@@ -173,7 +173,7 @@ export const sources = {
     label: "Suman's call transcript and emailed follow-up answers (siderophore cost, germanium tests, reuse, email preference)",
   },
   experts: {
-    label: "Team emails with experts, Oct 23–26, 2026 (private)",
+    label: "Team emails with experts, Oct 23–27, 2026 (private)",
   },
 } satisfies Record<string, Source>;
 
@@ -228,6 +228,7 @@ export const site = {
   paraphraseTag: "paraphrased",
   sourcesFolder: "Sources",
   openHint: "Open a file",
+  stepsLabel: "Pages, in reading order",
 };
 
 /* 1. DESK INTRO -------------------------------------------------------- */
@@ -256,7 +257,7 @@ export const desktop = {
     brand: "Maverick Pitch",
     sources: "Sources",
     shutdown: "Shut Down",
-    runTest: "Run the test",
+    runTest: "Email the team",
   },
   // The one window on screen: the six files, in reading order.
   folder: {
@@ -284,8 +285,9 @@ export const trash = {
 
 /* 3. FILES ------------------------------------------------------------- */
 /*
- * One file per question Suman asks (the "sieves"), in order. Each window is
- * a list of blocks; the renderer only knows block kinds, never words.
+ * One file per question Suman asks, in order. Each page states its thesis
+ * at the start (`thesis`) and again, reworded, at the end (`bottomLine`).
+ * The renderer only knows block kinds, never words.
  */
 
 export interface Table {
@@ -295,37 +297,47 @@ export interface Table {
   note?: string;
 }
 
+export interface Stat {
+  value: string;
+  label: string;
+}
+
 export type Block =
   | { kind: "lede"; text: string }
   | { kind: "p"; text: string }
   | { kind: "h"; text: string }
-  | { kind: "stats"; items: { value: string; label: string }[] }
+  | { kind: "stats"; items: Stat[] }
   | { kind: "list"; items: string[]; ordered?: boolean }
   | { kind: "table"; table: Table }
   | { kind: "flow"; steps: { who: string; what: string; ours?: boolean }[]; note?: string }
   | { kind: "cards"; items: { title: string; text: string; chips: string[]; img?: string }[] }
   | { kind: "gates"; phases: { weeks: string; name: string; steps: string[]; gate: string; pass: string }[]; note: string }
   | { kind: "quotes"; items: ExpertQuote[]; note: string }
+  | { kind: "feature"; label: string; quote: string; who: string; text: string }
   | { kind: "callout"; title: string; text: string }
   | { kind: "people"; items: { who: string; does: string }[] }
+  | { kind: "summary"; items: { file: PitchFile["id"]; thesis: string; stats: Stat[] }[] }
   | { kind: "button"; text: string };
 
 export interface PitchFile {
   id: "problem" | "solution" | "economics" | "evidence" | "plan" | "readme";
-  name: string; // icon label
+  name: string; // icon label and page title
   filename: string; // window title bar
   question: string; // Suman's question this file answers
-  title: string;
+  subtitle: string; // what the page is about
+  thesis: string; // the page's one takeaway, stated at the start
+  note?: string; // small print under the thesis
   blocks: Block[];
-  bottomLine: string;
+  bottomLine: string; // the same takeaway, reworded, at the end
 }
 
 export interface ExpertQuote {
   name: string;
   role: string;
   org: string;
-  quote: string; // one line
-  kind: "quote" | "paraphrase"; // paraphrase = not their exact words
+  quote: string; // their exact words unless kind is "paraphrase"
+  context?: string; // what the quote was about, shown after it
+  kind: "quote" | "paraphrase";
   validates: string;
   /** Default "role-only" until each person confirms they can be named. */
   permission: "named" | "role-only";
@@ -345,9 +357,9 @@ export const experts: ExpertQuote[] = [
     name: "Dirk Tischler",
     role: "Professor",
     org: "Ruhr University Bochum",
-    quote: "By changing pH you might be able to release it.",
+    quote: "The problem is that germanium complex is highly stable. By changing pH you might be able to release it.",
     kind: "quote",
-    validates: "Siderophores bind germanium; release by pH, alongside EDTA",
+    validates: "Siderophores bind germanium tightly; getting it back out is the hard part",
     permission: "role-only",
   },
   {
@@ -363,36 +375,19 @@ export const experts: ExpertQuote[] = [
     name: "Charles Nyabeze",
     role: "EVP Business Development, CEMI; Director",
     org: "MICA Network",
-    quote: "Teck's Trail is “likely one of the strongest candidates” for germanium from zinc-processing streams.",
-    kind: "paraphrase",
-    validates: "Trail as the right partner; a pilot checklist",
+    quote: "Likely one of the strongest candidates",
+    context: "on Teck's Trail, for germanium from zinc-processing streams",
+    kind: "quote",
+    validates: "Teck is the right customer to approach",
     permission: "role-only",
   },
   {
     name: "Mary Anne Alvin",
     role: "Senior Technology Manager",
     org: "US DOE critical minerals office",
-    quote: "It's not so much the cost of the reagent … but the over cost of the total system.",
+    quote: "It's not so much the cost of the reagent … but the [overall] cost of the total system.",
     kind: "quote",
-    validates: "Judge total process cost, not just siderophore cost",
-    permission: "role-only",
-  },
-  {
-    name: "Anna Kaksonen",
-    role: "Team Leader, Resource Recovery",
-    org: "CSIRO",
-    quote: "Waste choice depends on composition, mineralogy, particle size and acid consumption.",
-    kind: "paraphrase",
-    validates: "The cost model to build next",
-    permission: "role-only",
-  },
-  {
-    name: "Ian Lange",
-    role: "Professor",
-    org: "Colorado School of Mines",
-    quote: "On who pays a premium for non-Chinese germanium: “defense.”",
-    kind: "paraphrase",
-    validates: "Who the end buyers are",
+    validates: "The full process cost matters, not just the siderophore",
     permission: "role-only",
   },
 ];
@@ -404,32 +399,33 @@ export const files: PitchFile[] = [
     name: "Problem",
     filename: "01 Problem",
     question: "Is this worth my attention?",
-    title: "Almost none of the germanium in industrial waste gets recovered.",
+    subtitle: "Why germanium in industrial waste is worth a look.",
+    thesis: "Germanium is scarce, China controls most of it, and much of it is thrown away in mine and refinery waste.",
     blocks: [
       {
         kind: "stats",
         items: [
           { value: "[[<3%|pennState]]", label: "of the germanium in zinc ores and fly ash is ever recovered" },
           { value: "[[~60%|skillings]]", label: "of world germanium supply is controlled by China" },
-          { value: "[[Nov 27, 2026|evertiq]]", label: "China's US export-ban pause ends" },
+          { value: "[[Nov 27, 2026|evertiq]]", label: "China's pause on its US export ban ends" },
         ],
       },
-      { kind: "p", text: "Germanium is never mined on its own. It's scraped out of zinc processing with harsh chemistry, and the US had [[no primary refinery production|mtnAllies]] in 2025. US metal imports fell from [[21,000 to 7,000 kg|payne]] between 2024 and 2025." },
-      { kind: "h", text: "A real site is choosing a partner now" },
+      { kind: "p", text: "Germanium is never mined on its own. It comes out of zinc processing, and the US had [[no primary refinery production|mtnAllies]] in 2025. US imports of germanium metal fell from [[21,000 to 7,000 kg|payne]] between 2024 and 2025." },
+      { kind: "h", text: "One example: a single mine's waste" },
       {
         kind: "stats",
         items: [
-          { value: "[[up to ~13,000 kg/yr|titanTeck]]", label: "contained germanium Titan and Teck are evaluating at the Empire State Mine" },
-          { value: "[[~$78M/yr|smmTitan]]", label: "value of that germanium at $6,000/kg" },
+          { value: "[[up to ~13,000 kg/yr|titanTeck]]", label: "of germanium in the waste at Titan's Empire State Mine, which Titan and Teck are evaluating" },
+          { value: "[[~$78M/yr|smmTitan]]", label: "what that germanium would be worth at $6,000/kg" },
         ],
       },
-      { kind: "p", text: "Titan is weighing two routes at once: a concentrate to Teck's Trail, or an “owned or partnered hydrometallurgical facility” ([[Titan Q2 2026|titanQ2]]). It's in discussions with [[multiple counterparties|titanApr]] and running [[mineralogy studies|titanJul]] to pick the route. The partner slot is open now; it may not be in 6–12 months." },
+      { kind: "p", text: "Titan is one stream among many. The customer we'd pitch is Teck, which refines germanium at Trail in British Columbia and is expanding there; the expansion could double its germanium output ([[Teck|teckTrail]])." },
       { kind: "h", text: "Why the demand holds" },
-      { kind: "p", text: "Fiber is the largest germanium use: [[142 t in 2026|sp]]. Corning is supplying Meta under a fiber deal worth [[up to $6B through 2030|dcd]]. Asked who pays a premium for non-Chinese germanium, a professor at the Colorado School of Mines said: “defense.”" },
-      { kind: "callout", title: "The counterpoint", text: "High prices are already pushing some buyers to substitutes, mainly in [[infrared optics and solder|mmta]]. Fiber and photonics are the stickier demand." },
-      { kind: "p", text: "Samples are [[too small to establish a resource|mtnTitan]], so we always say “up to” and “being evaluated.”" },
+      { kind: "p", text: "Fiber optics is the largest use of germanium: [[142 t in 2026|sp]]. Corning is supplying Meta under a fiber deal worth [[up to $6B through 2030|dcd]]. Asked who pays a premium for non-Chinese germanium, a professor at the Colorado School of Mines said: “defense.”" },
+      { kind: "callout", title: "The counterpoint", text: "High prices are already pushing some buyers to substitutes, mainly in [[infrared optics and solder|mmta]]. Fiber and photonics are the steadier demand." },
+      { kind: "p", text: "Titan's samples are [[too small to establish a resource|mtnTitan]], so we always say “up to.”" },
     ],
-    bottomLine: "There is a real, dated supply problem, the metal is already sitting in waste that someone owns, and a named site is looking for a way to recover it.",
+    bottomLine: "There's a real, dated supply problem, and the germanium is already sitting in waste that companies like Teck want to recover.",
   },
 
   /* ---------------------------------------------------------------- */
@@ -438,24 +434,28 @@ export const files: PitchFile[] = [
     name: "Solution",
     filename: "02 Solution",
     question: "Does it use what we already have?",
-    title: "Take the siderophore MaverickX already makes and point it at a new target.",
+    subtitle: "How MaverickX's existing siderophore could fit into Teck's process.",
+    thesis: "MaverickX wouldn't build anything new: its existing siderophore would become one step in a process Teck already runs.",
     blocks: [
+      { kind: "h", text: "How it would work, step by step" },
       {
         kind: "flow",
         steps: [
-          { who: "Titan", what: "Leaches germanium out of its mine waste into a liquid" },
-          { who: "MaverickX siderophore", what: "Captures germanium from that liquid, at Titan's site", ours: true },
-          { who: "Titan", what: "Ships the concentrate to Teck in Trail, BC" },
-          { who: "Teck", what: "Refines it and sells to fiber, photonics and defense buyers" },
+          { who: "1 · Waste", what: "Zinc residues and mine tailings that Teck processes (example: Titan's tailings)" },
+          { who: "2 · Teck leaches", what: "Dissolves the germanium into an acidic liquid" },
+          { who: "3 · MaverickX captures", what: "The siderophore grabs germanium out of that liquid", ours: true },
+          { who: "4 · Release and reuse", what: "A pH shift or EDTA wash frees the germanium; the siderophore goes back in", ours: true },
+          { who: "5 · Teck refines", what: "Turns the concentrate into pure germanium and sells it to fiber, photonics and defense buyers" },
+          { who: "6 · MaverickX is paid", what: "A 5–10% royalty on germanium sales from the step, or direct siderophore sales", ours: true },
         ],
-        note: "MaverickX touches one step. It doesn't replace Teck's refinery; it upgrades Titan's dilute liquid into a concentrate Trail can take.",
+        note: "MaverickX supplies one step. It never runs a plant or handles mine waste itself.",
       },
       {
         kind: "cards",
         items: [
           {
             title: "Already cracked mica",
-            text: "Titan's germanium sits mainly in mica. Your siderophore already released 98.5% of the lithium from lepidolite, a mica.",
+            text: "Some germanium sits in mica, as Titan's does. MaverickX's siderophore already released 98.5% of the lithium from lepidolite, a mica.",
             chips: ["[[98.5%|suman]] lithium from lepidolite", "Titan's Ge sits in [[mica|titanQ1]]"],
             img: "/img/cards/mica-cutout.png",
           },
@@ -466,34 +466,34 @@ export const files: PitchFile[] = [
             img: "/img/cards/molecule-cutout.png",
           },
           {
-            title: "A paid test",
-            text: "90 days, 3 gates, customer-paid, about one scientist part-time.",
-            chips: ["[[90 days|test]]", "[[3 gates|test]]", "[[customer-paid|math]]"],
+            title: "A small first test",
+            text: "A 90-day bench test on Teck's waste samples, run by about one scientist part-time.",
+            chips: ["[[90 days|test]]", "[[3 checkpoints|test]]", "[[small cost|math]]"],
             img: "/img/cards/flask-cutout.png",
           },
         ],
       },
-      { kind: "callout", title: "Hypothesis, not a result", text: "Published germanium work uses the siderophore DFOB ([[HZDR|hzdr]], [[ERA-LEARN|eraLearn]]). We don't know which siderophore MaverickX tested on germanium, or the results. The test answers both." },
+      { kind: "callout", title: "A hypothesis, not a result", text: "Published germanium work uses the siderophore DFOB ([[HZDR|hzdr]], [[ERA-LEARN|eraLearn]]). We don't know which siderophore MaverickX tested on germanium, or MaverickX's results. The test answers both." },
       { kind: "h", text: "Three of eight pieces are already in place" },
       {
         kind: "table",
         table: {
-          head: ["Requirement", "What MaverickX already has", "What's missing", "Effort"],
+          head: ["What's needed", "What MaverickX already has", "What's missing", "Effort"],
           rows: [
             ["A product to test", "A siderophore in production as crude broth, [[“a few hundred dollars” per kg|suman]]", "Nothing", "Low"],
-            ["Getting germanium out of the rock", "Titan's germanium sits mainly in [[mica|titanQ1]]. The siderophore released [[98.5%|suman]] of the lithium from lepidolite, a mica", "Same test on Titan's mica tailings", "Low"],
-            ["Capturing germanium from the liquid", "Tested on germanium-bearing liquids, results unknown. DFOB binds germanium best at acidic pH with chloride present ([[HZDR|hzdr]])", "Which siderophore they used, and the capture % on Titan's liquid", "Medium"],
-            ["Iron getting in the way", "Siderophores evolved to grab iron. DFOB recovered only [[~44% of gallium|iitd]] from a liquid with 53 mg/L iron", "Remove iron first, or tune pH to favour germanium", "High"],
-            ["Releasing germanium and reusing the siderophore", "“In the works” (Suman). EDTA at pH 3.5 releases [[over 90%|hzdr]]; [[10 cycles|cordis]] were run for gallium", "Test that recipe on their siderophore", "Medium"],
-            ["Measuring results", "They already outsource lab analysis ([[~$500 per 10 HPLC samples|suman]])", "Outside germanium assays, same model", "Low"],
-            ["Making it at volume", "A prototype bioreactor up to [[750 L|suman]]", "About 10–250 t/yr of siderophore at full scale (our estimate), so a contract manufacturer", "High"],
+            ["Getting germanium out of the rock", "The siderophore released [[98.5%|suman]] of the lithium from lepidolite, a mica", "The same test on Teck's samples", "Low"],
+            ["Capturing germanium from the liquid", "Tested on germanium-bearing liquids, results unknown to us. DFOB binds germanium best at acidic pH with chloride present ([[HZDR|hzdr]])", "Which siderophore was used, and how much it captures", "Medium"],
+            ["Iron getting in the way", "Siderophores evolved to grab iron. Real leach liquids carry [[20–20,000× more iron than germanium|experts]] (our math from an expert's numbers)", "Remove iron first, or tune pH to favour germanium", "High"],
+            ["Releasing germanium and reusing the siderophore", "MaverickX is working on reuse. EDTA at pH 3.5 releases [[over 90%|hzdr]]; [[10 cycles|cordis]] were run for gallium", "Test that recipe on MaverickX's siderophore", "Medium"],
+            ["Measuring results", "MaverickX already outsources lab analysis ([[~$500 per 10 HPLC samples|suman]])", "Outside germanium assays, same model", "Low"],
+            ["Making it at volume", "A prototype bioreactor up to [[750 L|suman]]", "About 10–250 t/yr of siderophore at full scale (our estimate), so likely a contract manufacturer", "High"],
             ["Fitting Teck's refinery", "Nothing yet", "Teck's minimum feed spec, which Titan and Teck are [[defining now|marketscreener]]", "Medium"],
           ],
         },
       },
-      { kind: "callout", title: "The honest comparison", text: "By mass, siderophore use (8–19 g per g germanium, single use, our estimate) is similar to tannin ([[8–10 g|mdpi]]). Tannin is a cheap commodity, so MaverickX has to win on selectivity or reuse, not price per kg." },
+      { kind: "callout", title: "The honest comparison", text: "By weight, siderophore use (8–19 g per g germanium, single use, our estimate) is similar to tannin, today's standard ([[8–10 g|mdpi]]). Tannin is cheap, so MaverickX has to win on selectivity or reuse, not on price per kg." },
     ],
-    bottomLine: "The hardest part of most germanium projects is getting it out of the rock, and MaverickX has already done that on a mica. The biggest risk: the same iron-grabbing can crowd germanium out at the capture step.",
+    bottomLine: "It's MaverickX's existing product in one step of Teck's process. The big unknown is whether iron crowds the germanium out, and the test measures exactly that.",
   },
 
   /* ---------------------------------------------------------------- */
@@ -502,58 +502,75 @@ export const files: PitchFile[] = [
     name: "Economics",
     filename: "03 Economics",
     question: "Do the economics work?",
-    title: "The test roughly pays for itself. The upside is millions a year.",
+    subtitle: "What it costs MaverickX to find out, and what it could earn.",
+    thesis: "Trying this costs MaverickX very little, and if the siderophore can be reused, it pays.",
+    note: "All figures on this page are our estimates unless they link to a source.",
     blocks: [
       {
         kind: "stats",
         items: [
-          { value: "~$0", label: "net to try: the test fee roughly covers the cost (our estimate)" },
-          { value: "$3.9–7.8M", label: "a year in royalties if it works (our estimate)" },
+          { value: "~$30–80k", label: "what the 90-day test costs MaverickX" },
+          { value: "~$25–75k", label: "the test fee we'd ask Teck for, covering most of that" },
+          { value: "$3.9–7.8M/yr", label: "royalty if it works at full scale, from 2029 at the earliest" },
         ],
       },
+      { kind: "p", text: "Would Teck pay a fee before seeing any data? It might not. In that case we'd offer a discounted fee or free siderophore for the first test, and MaverickX's cost is the ~$30–80k." },
       {
         kind: "table",
         table: {
-          caption: "Cost of trying vs. the upside (our estimates)",
-          head: ["", "90-day test", "If it works and scales"],
+          caption: "MaverickX's money and time",
+          head: ["", "90-day test (now)", "If it works (2029+)"],
           rows: [
-            ["Cash out", "~$30–80k: scientist time, small siderophore batches, outside germanium assays", "Siderophore made by a contract manufacturer, paid for by the customer"],
-            ["Cash in", "Test fee from Titan, ~$25–75k", "5–10% royalty, ~$3.9–7.8M/yr at [[$6,000/kg|payne]] on [[13,000 kg/yr|titanTeck]], plus siderophore sales"],
-            ["Team time", "~1 scientist, part-time, 12 weeks", "Grows with volume; routine testing shifts to the customer"],
-            ["Worst case", "Lose the gap between cost and fee, a few $10k at most", "Gates stop it before big spending"],
-            ["Strategic gain", "Real data on Titan's mica; back into mining with a paying partner", "A second revenue line beside oil and gas"],
+            ["Cash out", "~$30–80k: scientist time, small siderophore batches, outside germanium assays", "Making siderophore at volume, likely through a contract manufacturer. The cost per kg is unknown; we'd need MaverickX's number"],
+            ["Cash in", "The ~$25–75k test fee we'd ask Teck for", "A 5–10% royalty on germanium sales: ~$3.9–7.8M/yr (breakdown below)"],
+            ["Team time", "~1 scientist, part-time, 12 weeks", "Supplying siderophore and process support"],
+            ["Worst case", "Lose the gap between cost and fee: a few tens of thousands of dollars", "The checkpoints stop it before big spending"],
           ],
         },
       },
-      { kind: "p", text: "Expected value, roughly: even at a 10% chance of success, 0.1 × $3.9M/yr ≈ $390k/yr of expected royalty, against a test that pays for itself (our estimate)." },
-      { kind: "h", text: "Reuse is the make-or-break number" },
+      { kind: "h", text: "Where $3.9–7.8M a year comes from" },
       {
         kind: "table",
         table: {
-          caption: "Siderophore cost per kg of germanium recovered (our estimate)",
-          head: ["Case", "Siderophore per kg Ge", "Cost per kg Ge", "Margin at $6,000/kg (Western)", "Margin at ~$3,800/kg (China)"],
+          head: ["Step", "Number"],
+          rows: [
+            ["Example germanium stream: Titan, one of Teck's possible feeds", "[[13,000 kg/yr|titanTeck]]"],
+            ["Germanium price (Western spot ran $6,150–6,250/kg in Jun–Jul 2026)", "[[$6,000/kg|payne]]"],
+            ["Value of that germanium", "~$78M/yr"],
+            ["Royalty at 5%", "~$3.9M/yr"],
+            ["Royalty at 10%", "~$7.8M/yr"],
+          ],
+          note: "If Teck won't agree to a royalty, the fallback is selling it the siderophore directly.",
+        },
+      },
+      { kind: "h", text: "Reuse is the make-or-break number" },
+      { kind: "p", text: "Pyoverdine is a bigger siderophore molecule than DFOB (about 1,400 vs 580 g/mol), so about 2.5× more is needed per kg of germanium. We need to know which type MaverickX makes." },
+      {
+        kind: "table",
+        table: {
+          caption: "Siderophore cost per kg of germanium recovered",
+          head: ["Case", "Siderophore per kg Ge", "Cost per kg Ge", "Left after siderophore cost at $6,000/kg (Western)", "Left after siderophore cost at ~$3,800/kg (China)"],
           rows: [
             ["Small siderophore, single use", "~8 kg", "~$2,400", "~$3,600", "~$1,400"],
             ["Pyoverdine, single use", "~19 kg", "~$5,800", "~$200", "loses ~$2,000"],
             ["Small siderophore, reused 10×", "~0.8 kg", "~$240", "~$5,760", "~$3,560"],
             ["Pyoverdine, reused 10×", "~1.9 kg", "~$580", "~$5,420", "~$3,220"],
           ],
-          note: "Assumes [[$300/kg siderophore|suman]], 1:1 binding, 100% capture, so real numbers will be worse. Western spot ran [[$6,150–6,250/kg|payne]] in Jun–Jul 2026. China price is approximate (27,250 yuan/kg on Oct 9, 2026, at ~7.1 yuan per dollar; [[SMM|smmWeekly]]).",
+          note: "Assumes [[$300/kg siderophore|suman]], one siderophore molecule per germanium atom, 100% capture and no siderophore lost to iron. Iron is the biggest risk every expert raised, so real numbers will be worse. “Left after siderophore cost” doesn't subtract the royalty, leaching or refining. The China price is approximate (27,250 yuan/kg on Oct 9, 2026, at ~7.1 yuan per dollar; [[SMM|smmWeekly]]).",
         },
       },
-      { kind: "callout", title: "Why this works when iron didn't", text: "Produced-water pretreatment failed because the target was $0.10–0.20 per barrel and single-use siderophore cost about $55+ per barrel. Germanium is worth thousands of dollars per kg, so the reagent can still leave a margin." },
+      { kind: "callout", title: "Why this works when produced water didn't", text: "Our earlier idea, cleaning oilfield produced water, needed a cost of $0.10–0.20 per barrel, but single-use siderophore cost about $55+ per barrel. Germanium is worth thousands of dollars per kg, so the siderophore can still leave money on the table." },
       { kind: "h", text: "The offer, step by step" },
       {
         kind: "people",
         items: [
-          { who: "Now", does: "A paid 90-day lab test on Titan's waste samples, estimated $25–75k." },
-          { who: "2027–28", does: "A paid on-site pilot, cost shared by Titan and government grants." },
-          { who: "2029+", does: "Siderophore supply plus a 5–10% royalty: ~$3.9–7.8M/yr at $6,000/kg on 13,000 kg (our estimate)." },
+          { who: "Now", does: "A 90-day lab test on Teck's samples. We'd ask for a ~$25–75k fee." },
+          { who: "2027–28", does: "An on-site pilot. Who pays is to be agreed with Teck; grant funding may be possible but isn't secured." },
+          { who: "2029+", does: "Siderophore supply plus a 5–10% royalty on germanium sales, or direct siderophore sales if Teck prefers." },
         ],
       },
-      { kind: "p", text: "MaverickX's own cost per phase (team estimates, not verified): 90-day test ~$30–80k, roughly covered by the test fee; pilot ~$0.5–2M, mostly covered by Titan and grants; full scale through a contract manufacturer, so MaverickX doesn't build a plant." },
     ],
-    bottomLine: "Reused, it works at any price. Single-use pyoverdine only breaks even at Western prices. Suman said reuse is “in the works,” so the 90-day test is exactly how to find out.",
+    bottomLine: "Finding out costs MaverickX a few tens of thousands of dollars at most. If the siderophore can be reused, it works even at China's price.",
   },
 
   /* ---------------------------------------------------------------- */
@@ -562,18 +579,44 @@ export const files: PitchFile[] = [
     name: "Evidence",
     filename: "04 Evidence",
     question: "Is anyone really asking for this?",
-    title: "We didn't just think about it. We asked.",
+    subtitle: "Who we talked to and what they said.",
+    thesis: "Big companies are already spending on this, and no expert we asked said it can't work.",
     blocks: [
-      { kind: "lede", text: "We emailed more than 30 people across refiners, mining networks, labs and government; 10 replied between Oct 23 and 26." },
+      {
+        kind: "stats",
+        items: [
+          { value: "54", label: "emails to refiners, mining networks, labs and government" },
+          { value: "12", label: "replies" },
+          { value: "1", label: "offer of real test material" },
+        ],
+      },
+      {
+        kind: "feature",
+        label: "Our only offer of real test material",
+        quote: "Blue Moon would be open to supporting testing a siderophore-based recovery process by providing some test material and some of my time to discuss your project.",
+        who: "Manager, Special Projects (Apex project lead), Blue Moon Metals",
+        text: "Before sending material, Blue Moon wants a project plan with our scope of work and funding. Their Apex ore is high in iron, and separating germanium from iron is one of their key challenges.",
+      },
+      { kind: "h", text: "The hard numbers" },
+      { kind: "p", text: "A Missouri S&T professor who works on recovering germanium from zinc tailings told us what a siderophore would face in a real leach liquid:" },
+      {
+        kind: "stats",
+        items: [
+          { value: "pH 0–2", label: "sulfuric acid at 40–80 °C" },
+          { value: "1–100 mg/L", label: "germanium" },
+          { value: "2–20 g/L", label: "iron, mostly Fe(III), plus 5–50 g/L zinc" },
+        ],
+      },
+      { kind: "p", text: "That's 20 to 20,000 times more iron than germanium (our math). In his words: “A biological chelator could be useful… So, selectivity is highly desired.”" },
+      { kind: "h", text: "What other experts told us" },
       { kind: "quotes", items: experts, note: "Names withheld until each person confirms." },
       { kind: "h", text: "What it changed in our plan" },
       {
         kind: "list",
         items: [
-          "The 90-day test gets four MICA items it didn't cover: a full mass balance, testing against zinc, lead, cadmium and arsenic as well as iron, environmental and biosafety checks, and a scale-up and IP plan.",
-          "Cost is shown for the whole process, not just siderophore per kg.",
-          "Two backup sites beyond Titan: Glencore's CEZinc in Quebec and the Winston Mine tailings near Thunder Bay.",
-          "Release has two routes to test: EDTA at low pH ([[HZDR|hzdr]]) and a simple pH shift.",
+          "The 90-day test now covers four items from the MICA Network's pilot checklist: a full mass balance, testing against zinc, lead, cadmium and arsenic as well as iron, environmental and biosafety checks, and a scale-up and IP plan.",
+          "Releasing the germanium is the hard part. We'll test two routes: EDTA at low pH ([[HZDR|hzdr]]) and a simple pH shift.",
+          "More places to test: Glencore's CEZinc in Quebec is another possible customer, and the Winston Mine tailings near Thunder Bay are a possible sample source.",
         ],
       },
       { kind: "h", text: "The money is already moving" },
@@ -585,37 +628,37 @@ export const files: PitchFile[] = [
           "Titan + Teck: jointly defining the minimum feed specs Trail needs from Titan's waste ([[MarketScreener|marketscreener]]).",
         ],
       },
-      { kind: "callout", title: "What nobody has said yet", text: "None of these companies has said they want a siderophore. They want a way to upgrade the waste; we're offering one to test." },
+      { kind: "callout", title: "What nobody has said yet", text: "None of these companies has asked for a siderophore, and Teck hasn't replied to our four emails yet." },
     ],
-    bottomLine: "Big, recognizable companies are already spending on this problem, and we've done the legwork to talk to people. We're honest about what nobody has confirmed yet.",
+    bottomLine: "The demand is real, but nobody has asked for a siderophore yet. That's what the test is for.",
   },
 
   /* ---------------------------------------------------------------- */
   {
     id: "plan",
-    name: "Plan",
-    filename: "05 Plan",
+    name: "Implementation",
+    filename: "05 Implementation",
     question: "Is it low-risk and low-effort for my team?",
-    title: "90 days. Three gates. Stop if any fails.",
+    subtitle: "How to decide whether this is worth the effort before investing real resources.",
+    thesis: "A 90-day test with three checkpoints tells MaverickX whether this works before it spends serious money.",
     blocks: [
-      { kind: "lede", text: "The test is built so the expensive question (making siderophore at volume) is never asked until three cheap questions are answered." },
       {
         kind: "gates",
         phases: [
-          { weeks: "Weeks 1–4", name: "Leach", steps: ["Titan ships mica tailings", "Siderophore leach tests", "Assay Ge in the liquid"], gate: "Gate 1", pass: "50%+ of Ge leached out of Titan's mica" },
-          { weeks: "Weeks 5–8", name: "Capture", steps: ["Capture Ge from the leach", "Test with iron present", "Try iron removal or pH"], gate: "Gate 2", pass: "70%+ of dissolved Ge captured despite iron" },
-          { weeks: "Weeks 9–12", name: "Release", steps: ["Release Ge, reuse 3+ times", "Make a small concentrate", "Send it to Teck for spec"], gate: "Gate 3", pass: "90%+ released, 3+ reuses, and Teck accepts the spec" },
+          { weeks: "Weeks 1–4", name: "Leach", steps: ["Teck sends waste samples", "Leach tests with the siderophore", "Measure germanium in the liquid"], gate: "Checkpoint 1", pass: "At least half the germanium dissolves out of the sample" },
+          { weeks: "Weeks 5–8", name: "Capture", steps: ["Capture germanium from the liquid", "Test at real iron levels", "Try removing iron or adjusting pH"], gate: "Checkpoint 2", pass: "70%+ of the dissolved germanium captured despite iron" },
+          { weeks: "Weeks 9–12", name: "Release", steps: ["Release the germanium and reuse the siderophore 3+ times", "Make a small concentrate", "Send it to Teck to check against its spec"], gate: "Checkpoint 3", pass: "90%+ released, 3+ reuses, and Teck accepts the concentrate" },
         ],
-        note: "Thresholds are our proposal. Fail any gate: stop. Spending so far stays roughly covered by the test fee.",
+        note: "These thresholds are our proposal. If a checkpoint fails, MaverickX stops, having spent little.",
       },
-      { kind: "p", text: "Why these thresholds: Gate 1 at 50% means at least half the germanium is reachable. Gate 3's 90% release matches what the [[HZDR team|hzdr]] reached with DFOB, and 3+ reuses brings single-use pyoverdine's ~$5,800/kg cost under ~$1,900/kg of germanium, below even China's price (our estimate)." },
+      { kind: "p", text: "Why these thresholds: at 50%, at least half the germanium is reachable, which is enough to justify the capture work. 90% release matches what the [[HZDR team|hzdr]] reached with DFOB. Three or more reuses bring pyoverdine's cost from ~$5,800 to under ~$1,900 per kg of germanium, below even China's price (our estimate)." },
       { kind: "h", text: "Who does what" },
       {
         kind: "people",
         items: [
-          { who: "Titan", does: "Ships tailings and mica concentrate samples, pays the test fee, shares its mineralogy data." },
-          { who: "MaverickX", does: "Runs bench leach, capture and release tests with its existing siderophore; outsources germanium assays." },
-          { who: "Teck", does: "Tells us the minimum feed spec and checks the small concentrate from weeks 9–12." },
+          { who: "Teck", does: "Sends waste samples, shares its minimum feed spec and checks the small concentrate in weeks 9–12. We'd ask it to pay the test fee." },
+          { who: "MaverickX", does: "Runs bench tests with its existing siderophore and sends samples out for germanium assays." },
+          { who: "Our team", does: "Handles outreach to Teck and the analysis." },
         ],
       },
       { kind: "h", text: "MICA Network pilot checklist" },
@@ -633,53 +676,101 @@ export const files: PitchFile[] = [
       {
         kind: "table",
         table: {
-          head: ["Risk", "Why it matters", "How we handle it"],
+          head: ["Risk", "Why it matters", "Mitigation"],
           rows: [
-            ["We don't know Suman's germanium test results", "The whole idea rests on the siderophore actually capturing germanium", "Ask first; if results were poor, pivot to the backup idea"],
-            ["Germanium is in solids, siderophore works on liquids", "Titan's germanium sits in non-sulfide waste material, so it must be leached first", "Pitch MaverickX as the capture step on the leach liquid"],
-            ["Siderophore isn't reusable yet", "Single-use pyoverdine barely breaks even", "The 90-day test measures reuse"],
-            ["Iron getting in the way", "DFOB recovered only [[~44% of gallium|iitd]] from a liquid with 53 mg/L iron", "Remove iron first, or tune pH to favour germanium"],
-            ["Tannin is cheap", "By mass, siderophore use is similar to tannin ([[8–10 g per g Ge|mdpi]])", "Win on selectivity and reuse"],
-            ["The research siderophore may not be theirs", "Published germanium work uses DFOB; MaverickX's main siderophore may be pyoverdine", "Ask which one they tested and how it compares"],
-            ["High prices cause substitution", "Buyers are already swapping germanium out of some [[infrared optics and solder|mmta]]", "Lead with fiber and photonics, where demand is stickier"],
-            ["Titan already has a partner", "Teck is evaluating the recovery path with Titan", "MaverickX is a supplier into that path, not a competitor to Teck"],
-            ["It's mining-adjacent", "TKS warned against mining ideas, and MaverickX paused mining", "Recovering metals from existing waste, paid from day one"],
-            ["13,000 kg isn't proven", "Titan's samples are [[too small to establish a resource|mtnTitan]]", "Always say “up to” and “being evaluated”"],
+            ["We don't know MaverickX's test results", "The idea rests on the siderophore capturing germanium", "Ask MaverickX first; the test confirms it either way"],
+            ["Iron crowds germanium out", "Real leach liquids carry [[20–20,000× more iron than germanium|experts]]", "Remove iron first, or tune pH to favour germanium"],
+            ["Strong acid", "Leach liquids run at pH 0–2 and 40–80 °C, and the siderophore must survive that", "Test at those conditions in weeks 1–8"],
+            ["Siderophore isn't reusable yet", "Single-use pyoverdine barely breaks even", "The test measures reuse (3+ cycles)"],
+            ["Tannin is cheap", "By weight, siderophore use is similar to tannin ([[8–10 g per g Ge|mdpi]])", "Win on selectivity and reuse"],
+            ["The research siderophore may not be MaverickX's", "Published germanium work uses DFOB; MaverickX's main siderophore may be pyoverdine", "Ask which one MaverickX tested"],
+            ["High prices cause substitution", "Buyers are already swapping germanium out of some [[infrared optics and solder|mmta]]", "Lead with fiber and photonics, where demand is steadier"],
+            ["Teck hasn't replied yet", "We've sent four emails with no answer", "Blue Moon has offered test material, so testing can start either way"],
+            ["It sounds like mining", "TKS warned against mining ideas, and MaverickX paused mining", "MaverickX supplies one step for waste that already exists; it never mines"],
           ],
         },
       },
     ],
-    bottomLine: "The cost of finding out is one part-time scientist for 12 weeks, paid for by the customer. If a gate fails, little is lost.",
+    bottomLine: "Finding out takes one part-time scientist for 12 weeks. If a checkpoint fails, MaverickX stops having spent little.",
   },
 
   /* ---------------------------------------------------------------- */
   {
     id: "readme",
-    name: "Read me",
-    filename: "06 Read me",
+    name: "Summary",
+    filename: "06 Summary",
     question: "What happens first?",
-    title: "Iron is the main risk, so we test it first.",
+    subtitle: "Every page in one place, plus what we'd like to ask MaverickX.",
+    thesis: "In 90 days, at little cost, MaverickX can find out whether its existing siderophore recovers germanium from waste.",
     blocks: [
-      { kind: "lede", text: "Next: Titan samples, the Umicore call, Teck's feed spec." },
-      { kind: "h", text: "Our questions for you" },
+      {
+        kind: "summary",
+        items: [
+          {
+            file: "problem",
+            thesis: "Germanium is scarce, mostly Chinese, and thrown away in waste.",
+            stats: [
+              { value: "[[<3%|pennState]]", label: "recovered" },
+              { value: "[[~60%|skillings]]", label: "from China" },
+              { value: "[[13,000 kg/yr|titanTeck]]", label: "in one mine's waste" },
+            ],
+          },
+          {
+            file: "solution",
+            thesis: "MaverickX's existing siderophore becomes one step in Teck's process.",
+            stats: [
+              { value: "[[98.5%|suman]]", label: "lithium freed from a mica" },
+              { value: "[[>90%|hzdr]]", label: "germanium released with EDTA" },
+              { value: "[[10|cordis]]", label: "reuse cycles shown" },
+            ],
+          },
+          {
+            file: "economics",
+            thesis: "Trying costs little; with reuse, it pays.",
+            stats: [
+              { value: "~$30–80k", label: "test cost" },
+              { value: "$3.9–7.8M/yr", label: "royalty potential" },
+              { value: "~$240", label: "siderophore per kg Ge, reused 10×" },
+            ],
+          },
+          {
+            file: "evidence",
+            thesis: "Companies are spending on this, and no expert said it can't work.",
+            stats: [
+              { value: "54", label: "emails" },
+              { value: "12", label: "replies" },
+              { value: "1", label: "offer of test material" },
+            ],
+          },
+          {
+            file: "plan",
+            thesis: "A 90-day test with three checkpoints decides it.",
+            stats: [
+              { value: "90", label: "days" },
+              { value: "3", label: "checkpoints" },
+              { value: "~1", label: "scientist, part-time" },
+            ],
+          },
+        ],
+      },
+      { kind: "h", text: "Our questions for MaverickX" },
       {
         kind: "list",
         ordered: true,
         items: [
           "How much germanium did your siderophore capture in the germanium-bearing liquid tests, and was it promising?",
           "Which siderophore did you test on germanium: pyoverdine, or a hydroxamate like DFOB?",
-          "Beyond lepidolite, have you leached any other mica? Titan's germanium sits mainly in mica.",
+          "Beyond lepidolite, have you leached any other mica?",
           "How much iron can be present before your siderophore stops capturing other metals well?",
           "Have you tried EDTA at low pH to release metals and reuse the siderophore?",
           "Roughly how much siderophore does it take per kg of metal captured, and how much can you produce a year today?",
           "Have you tried it on gallium? Gallium mimics iron, so it may bind even better.",
-          "Would a paid 90-day test with a mine like Titan be something MaverickX would take on, and roughly how many scientist-hours would it take?",
+          "Would a 90-day test with a company like Teck be something MaverickX would take on, and roughly how many scientist-hours would it take?",
         ],
       },
-      { kind: "button", text: "Run the test" },
-      { kind: "callout", title: "Backup direction", text: "Keeping saltwater disposal wells open: in MaverickX's oil and gas lane, already on its roadmap, and uses the existing product." },
+      { kind: "button", text: "Email the team" },
     ],
-    bottomLine: "In 90 days, at almost no net cost, MaverickX can find out whether its existing siderophore pulls germanium out of Titan's mica waste.",
+    bottomLine: "The next step is small: answer a few questions and run one 90-day test.",
   },
 ];
 
