@@ -1,0 +1,8 @@
+node_modules
+dist
+.DS_Store
+# Raw World Labs Atlas outputs (renders, depth maps, test crops); the site uses /public only
+atlas/
+# Local tool settings
+.claude/
+*.log

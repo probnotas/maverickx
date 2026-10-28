@@ -1,0 +1,68 @@
+/* Design tokens. Change the look here; components only reference these. */
+:root {
+  /* Palette */
+  --paper: #f4f1ea;          /* warm off-white page */
+  --paper-2: #ebe6db;        /* card fallback / subtle fills */
+  --ink: #1d2227;            /* deep charcoal text */
+  --ink-2: #4a535c;          /* slate, secondary text */
+  --ink-3: #7b838a;          /* labels, credits */
+  --rule: rgba(29, 34, 39, 0.14);
+
+  --ge: #8fb0cf;             /* germanium silver-blue (glows, on dark) */
+  --ge-ink: #3f6587;         /* germanium accent for text/links on paper (AA) */
+  --ge-soft: rgba(143, 176, 207, 0.18);
+
+  --night: #0d141c;          /* deep navy behind video */
+  --night-ink: #eef1f4;      /* text over video */
+  --night-ink-2: rgba(238, 241, 244, 0.72);
+
+  /* Retro desktop (the computer's screen) */
+  --os-desk: #1f2326;        /* charcoal desktop, MaverickX monochrome */
+  --os-face: #ffffff;
+  --os-line: #000000;
+  --os-boot: #f2f3f4;        /* boot screen, near-white so the MaverickX logo reads */
+  --os-folder: #c9d8e8;      /* folder fill, silver-blue */
+  --font-os: "Pixelify Sans", Geneva, "Segoe UI", sans-serif;
+
+  /* Type */
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --fs-mega: clamp(4.5rem, 19vw, 22rem);    /* footer wordmark, big stat */
+  --fs-hero: clamp(3rem, 8.4vw, 8.5rem);
+  --fs-h1: clamp(2.4rem, 5.6vw, 5.25rem);
+  --fs-h2: clamp(1.9rem, 3.6vw, 3.25rem);
+  --fs-h3: clamp(1.4rem, 2.2vw, 1.9rem);
+  --fs-body: clamp(1rem, 1.05vw, 1.125rem);
+  --fs-small: 0.875rem;
+  --fs-label: 0.72rem;
+
+  --lh-tight: 0.95;
+  --lh-snug: 1.15;
+  --lh-body: 1.55;
+  --track-label: 0.16em;
+
+  /* Space (8pt-ish scale) */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+  --s-9: 7rem;
+  --s-10: 10rem;
+
+  --gutter: clamp(1rem, 4vw, 3.5rem);
+  --max: 1440px;
+  --measure: 34ch;
+
+  /* Shape & motion */
+  --radius: 14px;
+  --radius-lg: 22px;
+  --pill: 999px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 700ms;
+  --shadow-cutout: drop-shadow(0 18px 24px rgba(13, 20, 28, 0.22));
+}

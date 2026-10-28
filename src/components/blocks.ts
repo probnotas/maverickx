@@ -1,0 +1,89 @@
+import { footer, site, type Block, type ExpertQuote, type Table } from "../content";
+import { rich } from "../rich";
+
+export const mailto = () =>
+  `mailto:${footer.email}?subject=${encodeURIComponent(footer.emailSubject)}`;
+
+const table = (t: Table) => `
+  <figure class="b-table">
+    ${t.caption ? `<figcaption class="label">${rich(t.caption)}</figcaption>` : ""}
+    <div class="b-table__scroll" tabindex="0">
+      <table>
+        <thead><tr>${t.head.map((h) => `<th scope="col">${rich(h)}</th>`).join("")}</tr></thead>
+        <tbody>${t.rows
+          .map((r) => `<tr>${r.map((c, i) => (i === 0 ? `<th scope="row">${rich(c)}</th>` : `<td>${rich(c)}</td>`)).join("")}</tr>`)
+          .join("")}</tbody>
+      </table>
+    </div>
+    ${t.note ? `<p class="b-note">${rich(t.note)}</p>` : ""}
+  </figure>`;
+
+// Names render only once a person has agreed to be named.
+const quote = (q: ExpertQuote) => `
+  <figure class="b-quote">
+    <blockquote>${q.kind === "quote" ? `“${rich(q.quote)}”` : rich(q.quote)}</blockquote>
+    <figcaption>
+      ${q.permission === "named" ? `<strong>${rich(q.name)}</strong>` : ""}
+      <span>${rich(q.role)}</span>
+      <span class="b-quote__org">${rich(q.org)}</span>
+      ${q.kind === "paraphrase" ? `<em class="b-tag">${site.paraphraseTag}</em>` : ""}
+    </figcaption>
+    <p class="b-quote__why">${rich(q.validates)}</p>
+  </figure>`;
+
+export function block(b: Block): string {
+  switch (b.kind) {
+    case "lede":
+      return `<p class="b-lede">${rich(b.text)}</p>`;
+    case "p":
+      return `<p class="b-p">${rich(b.text)}</p>`;
+    case "h":
+      return `<h3 class="b-h">${rich(b.text)}</h3>`;
+    case "stats":
+      return `<div class="b-stats">${b.items
+        .map((s) => `<div class="b-stat"><p class="b-stat__value display">${rich(s.value)}</p><p class="b-stat__label">${rich(s.label)}</p></div>`)
+        .join("")}</div>`;
+    case "list": {
+      const tag = b.ordered ? "ol" : "ul";
+      return `<${tag} class="b-list">${b.items.map((i) => `<li>${rich(i)}</li>`).join("")}</${tag}>`;
+    }
+    case "table":
+      return table(b.table);
+    case "flow":
+      return `<figure class="b-flow"><ol>${b.steps
+        .map((s) => `<li class="${s.ours ? "is-ours" : ""}"><span class="label">${rich(s.who)}</span><span>${rich(s.what)}</span></li>`)
+        .join("")}</ol>${b.note ? `<figcaption class="b-note">${rich(b.note)}</figcaption>` : ""}</figure>`;
+    case "cards":
+      return `<div class="b-cards">${b.items
+        .map(
+          (c) => `<article class="b-card">
+            ${c.img ? `<img class="b-card__cutout" src="${c.img}" alt="" loading="lazy">` : ""}
+            <h4 class="b-card__title display">${rich(c.title)}</h4>
+            <p>${rich(c.text)}</p>
+            <div class="b-chips">${c.chips.map((ch) => `<span class="chip">${rich(ch)}</span>`).join("")}</div>
+          </article>`,
+        )
+        .join("")}</div>`;
+    case "gates":
+      return `<figure class="b-gates"><ol>${b.phases
+        .map(
+          (p) => `<li>
+            <p class="label">${rich(p.weeks)}</p>
+            <h4 class="display">${rich(p.name)}</h4>
+            <ul>${p.steps.map((s) => `<li>${rich(s)}</li>`).join("")}</ul>
+            <div class="b-gate"><strong>${rich(p.gate)}</strong><span>${rich(p.pass)}</span></div>
+          </li>`,
+        )
+        .join("")}</ol><figcaption class="b-note">${rich(b.note)}</figcaption></figure>`;
+    case "quotes":
+      return `<div class="b-quotes">${b.items.map(quote).join("")}</div>${
+        b.items.some((q) => q.permission === "role-only") ? `<p class="b-note">${rich(b.note)}</p>` : ""
+      }`;
+    case "callout":
+      return `<aside class="b-callout"><p class="label">${rich(b.title)}</p><p>${rich(b.text)}</p></aside>`;
+    case "people":
+      return `<dl class="b-people">${b.items.map((p) => `<div><dt>${rich(p.who)}</dt><dd>${rich(p.does)}</dd></div>`).join("")}</dl>`;
+    case "button":
+      return `<p class="b-cta"><a class="btn" href="${mailto()}">${rich(b.text)}</a><span class="b-cta__email">${rich(footer.email)}</span></p>`;
+  }
+}
