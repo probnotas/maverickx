@@ -6,3 +6,5 @@ atlas/
 # Local tool settings
 .claude/
 *.log
+.vercel
+.env*
