@@ -310,6 +310,14 @@ export type Block =
   | { kind: "list"; items: string[]; ordered?: boolean }
   | { kind: "table"; table: Table }
   | { kind: "flow"; steps: { who: string; what: string; ours?: boolean }[]; note?: string }
+  | {
+      kind: "steps";
+      prev: string;
+      next: string;
+      counter: string; // {n} and {total} are filled in
+      steps: { label: string; text: string; video?: string; poster?: string; stat?: Stat; ours?: boolean }[];
+      note?: string;
+    }
   | { kind: "cards"; items: { title: string; text: string; chips: string[]; img?: string }[] }
   | { kind: "gates"; phases: { weeks: string; name: string; steps: string[]; gate: string; pass: string }[]; note: string }
   | { kind: "quotes"; items: ExpertQuote[]; note: string }
@@ -439,16 +447,52 @@ export const files: PitchFile[] = [
     blocks: [
       { kind: "h", text: "How it would work, step by step" },
       {
-        kind: "flow",
+        kind: "steps",
+        prev: "Previous step",
+        next: "Next step",
+        counter: "Step {n} of {total}",
         steps: [
-          { who: "1 · Waste", what: "Zinc residues and mine tailings that Teck processes (example: Titan's tailings)" },
-          { who: "2 · Teck leaches", what: "Dissolves the germanium into an acidic liquid" },
-          { who: "3 · MaverickX captures", what: "The siderophore grabs germanium out of that liquid", ours: true },
-          { who: "4 · Release and reuse", what: "A pH shift or EDTA wash frees the germanium; the siderophore goes back in", ours: true },
-          { who: "5 · Teck refines", what: "Turns the concentrate into pure germanium and sells it to fiber, photonics and defense buyers" },
-          { who: "6 · MaverickX is paid", what: "A 5–10% royalty on germanium sales from the step, or direct siderophore sales", ours: true },
+          {
+            label: "Waste goes in",
+            text: "Zinc residues and mine tailings hold small amounts of germanium. One example: Titan's tailings hold [[up to ~13,000 kg a year|titanTeck]].",
+            video: "/video/how/1-waste.mp4",
+            poster: "/img/how/1-waste.jpg",
+          },
+          {
+            label: "Teck leaches",
+            text: "Teck dissolves the germanium out of the solid waste into an acidic liquid.",
+            video: "/video/how/2-leach.mp4",
+            poster: "/img/how/2-leach.jpg",
+          },
+          {
+            label: "MaverickX captures",
+            text: "MaverickX's siderophore grabs the germanium out of that liquid. The test checks how much iron it grabs too.",
+            video: "/video/how/3-capture.mp4",
+            poster: "/img/how/3-capture.jpg",
+            ours: true,
+          },
+          {
+            label: "Release and reuse",
+            text: "A pH shift or an EDTA wash makes the siderophore let go of the germanium. The siderophore goes back in to capture more.",
+            video: "/video/how/4-release.mp4",
+            poster: "/img/how/4-release.jpg",
+            ours: true,
+          },
+          {
+            label: "Teck refines",
+            text: "Teck turns the concentrate into pure germanium and sells it to fiber, photonics and defense buyers.",
+            video: "/video/how/5-refine.mp4",
+            poster: "/img/how/5-refine.jpg",
+          },
+          {
+            label: "MaverickX is paid",
+            text: "Teck pays MaverickX a 5–10% royalty on germanium sales from the step. If it won't, the fallback is selling it the siderophore directly.",
+            video: "/video/how/6-paid.mp4",
+            poster: "/img/how/6-paid.jpg",
+            ours: true,
+          },
         ],
-        note: "MaverickX supplies one step. It never runs a plant or handles mine waste itself.",
+        note: "MaverickX supplies one step. It never runs a plant or handles mine waste itself. The animations are illustrations, not to scale.",
       },
       {
         kind: "cards",

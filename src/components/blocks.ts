@@ -53,6 +53,38 @@ export function block(b: Block): string {
       return `<figure class="b-flow"><ol>${b.steps
         .map((s) => `<li class="${s.ours ? "is-ours" : ""}"><span class="label">${rich(s.who)}</span><span>${rich(s.what)}</span></li>`)
         .join("")}</ol>${b.note ? `<figcaption class="b-note">${rich(b.note)}</figcaption>` : ""}</figure>`;
+    case "steps": {
+      const total = b.steps.length;
+      const count = (n: number) => b.counter.replace("{n}", String(n)).replace("{total}", String(total));
+      return `<figure class="b-steps" data-steps tabindex="0">
+        <div class="b-steps__track">${b.steps
+          .map(
+            (st, i) => `<div class="b-steps__slide${st.ours ? " is-ours" : ""}" data-slide="${i}"${i ? " hidden" : ""}>
+              <div class="b-steps__media">${
+                st.video
+                  ? `<video src="${st.video}" poster="${st.poster ?? ""}" muted loop playsinline preload="${i ? "none" : "auto"}" aria-hidden="true"></video>`
+                  : st.stat
+                    ? `<div class="b-steps__stat"><p class="display">${rich(st.stat.value)}</p><p>${rich(st.stat.label)}</p></div>`
+                    : ""
+              }</div>
+              <div class="b-steps__caption">
+                <p class="label">${rich(count(i + 1))}</p>
+                <h4 class="b-steps__title display">${rich(st.label)}</h4>
+                <p>${rich(st.text)}</p>
+              </div>
+            </div>`,
+          )
+          .join("")}</div>
+        <div class="b-steps__controls">
+          <button class="b-steps__arrow" type="button" data-steps-go="-1" aria-label="${rich(b.prev)}" disabled>←</button>
+          <div class="b-steps__dots">${b.steps
+            .map((st, i) => `<button type="button" data-steps-to="${i}" aria-label="${rich(count(i + 1))}: ${rich(st.label)}"${i ? "" : ' aria-current="step"'}></button>`)
+            .join("")}</div>
+          <button class="b-steps__arrow" type="button" data-steps-go="1" aria-label="${rich(b.next)}">→</button>
+        </div>
+        ${b.note ? `<figcaption class="b-note">${rich(b.note)}</figcaption>` : ""}
+      </figure>`;
+    }
     case "cards":
       return `<div class="b-cards">${b.items
         .map(

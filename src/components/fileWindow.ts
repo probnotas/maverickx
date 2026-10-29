@@ -1,6 +1,7 @@
 import { files, footer, site, sourceList, sources, trash, type PitchFile } from "../content";
 import { escape, rich } from "../rich";
 import { block } from "./blocks";
+import { initSteps } from "./stepper";
 import { chrome } from "./desktop";
 
 export type WindowId = PitchFile["id"] | "sources" | "trash";
@@ -80,6 +81,7 @@ export function setupWindows(os: HTMLElement, onOpen: (id: WindowId) => void = (
       attrs: `role="dialog" aria-modal="true" aria-label="${escape(title)}"`,
     });
     layer.querySelector<HTMLElement>(".win__body")!.scrollTop = 0;
+    initSteps(layer);
     layer.querySelector<HTMLElement>(".mw__close")!.focus({ preventScroll: true });
     onOpen(id);
   };

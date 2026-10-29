@@ -1393,3 +1393,176 @@ html.mode-zoom body {
 .mode-zoom .mw.is-dragging .mw__bar {
   cursor: grabbing;
 }
+
+/* =====================================================================
+   "How it works" explainer: one step at a time, video + caption
+   ===================================================================== */
+.b-steps {
+  display: grid;
+  gap: 1rem;
+  margin-inline: 0;
+  outline: none;
+}
+.b-steps:focus-visible .b-steps__media {
+  box-shadow: 0 0 0 3px var(--ge-ink);
+}
+.b-steps__slide {
+  display: grid;
+  gap: 1.1rem;
+  animation: step-in 320ms var(--ease);
+}
+.b-steps__slide[hidden] {
+  display: none;
+}
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+.b-steps__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #d9dcdf;
+}
+.b-steps__media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.b-steps__stat {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.4rem;
+  background: var(--night);
+  color: var(--night-ink);
+  text-align: center;
+}
+.b-steps__stat .display {
+  font-size: clamp(3.5rem, 12cqw, 7rem);
+  line-height: 0.9;
+}
+.b-steps__stat p:last-child {
+  color: var(--night-ink-2);
+}
+.b-steps__caption {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 60ch;
+}
+.b-steps__title {
+  font-size: clamp(1.6rem, 3cqw, 2.2rem);
+  line-height: 1.05;
+}
+.b-steps__caption p:last-child {
+  color: var(--ink-2);
+}
+/* MaverickX's own steps */
+.b-steps__slide.is-ours .b-steps__caption {
+  padding-left: 0.9rem;
+  border-left: 3px solid #4f84c4;
+}
+.b-steps__slide.is-ours .b-steps__caption .label {
+  color: #3a6aa6;
+}
+.b-steps__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--rule);
+}
+.b-steps__arrow {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  font-size: 1.15rem;
+  transition: background 200ms var(--ease), color 200ms var(--ease), opacity 200ms;
+}
+.b-steps__arrow:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+}
+.b-steps__arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+.b-steps__dots {
+  display: flex;
+  gap: 0.5rem;
+}
+.b-steps__dots button {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rule);
+  transition: background 200ms, width 200ms var(--ease);
+}
+.b-steps__dots button[aria-current="step"] {
+  width: 26px;
+  border-radius: var(--pill);
+  background: var(--ink);
+}
+
+/* Explainer layout: everything for one step fits in view.
+   Wide: video left, label/title/text/arrows right. Narrow: stacked. */
+.b-steps {
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  grid-template-areas:
+    "media caption"
+    "media controls"
+    "note note";
+  grid-template-rows: 1fr auto auto;
+  column-gap: 1.6rem;
+  row-gap: 1rem;
+  align-items: start;
+}
+.b-steps__track,
+.b-steps__slide:not([hidden]) {
+  display: contents;
+}
+.b-steps__media {
+  grid-area: media;
+  animation: step-in 320ms var(--ease);
+}
+.b-steps__caption {
+  grid-area: caption;
+  align-self: center;
+  animation: step-in 320ms var(--ease);
+}
+.b-steps__controls {
+  grid-area: controls;
+  align-self: end;
+  padding-top: 0.8rem;
+}
+.b-steps > .b-note {
+  grid-area: note;
+  margin-top: 0;
+}
+.b-steps__caption p:last-child {
+  font-size: 0.95rem;
+}
+.b-steps__title {
+  font-size: clamp(1.5rem, 2.6cqw, 2rem);
+}
+
+@container (max-width: 760px) {
+  .b-steps {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "media"
+      "caption"
+      "controls"
+      "note";
+    grid-template-rows: auto;
+  }
+  .b-steps__media {
+    max-height: 42vh;
+  }
+}
