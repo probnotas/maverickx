@@ -389,15 +389,6 @@ export const experts: ExpertQuote[] = [
     validates: "Teck is the right customer to approach",
     permission: "role-only",
   },
-  {
-    name: "Mary Anne Alvin",
-    role: "Senior Technology Manager",
-    org: "US DOE critical minerals office",
-    quote: "It's not so much the cost of the reagent … but the [overall] cost of the total system.",
-    kind: "quote",
-    validates: "The full process cost matters, not just the siderophore",
-    permission: "role-only",
-  },
 ];
 
 export const files: PitchFile[] = [
