@@ -115,11 +115,12 @@ export function setupDesk(root: HTMLElement, os: HTMLElement, hooks: Hooks) {
     });
     gsap.set(scene, { transformOrigin: `${(sc.left + sc.width / 2) * 100}% ${(sc.top + sc.height / 2) * 100}%` });
     if (html.classList.contains("mode-zoom")) {
+      // Whole pixels: half-pixel edges shimmer once a video plays on top.
       Object.assign(os.style, {
-        left: `${g.os.left}px`,
-        top: `${g.os.top}px`,
-        width: `${g.os.width}px`,
-        height: `${g.os.height}px`,
+        left: `${Math.round(g.os.left)}px`,
+        top: `${Math.round(g.os.top)}px`,
+        width: `${Math.round(g.os.width)}px`,
+        height: `${Math.round(g.os.height)}px`,
       });
       if (on && !tl?.isActive()) gsap.set(scene, { x: g.dx, y: g.dy, scale: g.scale });
     } else {

@@ -251,6 +251,35 @@ export const boot = {
   icons: ["/img/cards/mica-cutout.png", "/img/cards/molecule-cutout.png", "/img/cards/flask-cutout.png"],
 };
 
+/* Team videos: the intro after boot, then one overview per file -------- */
+export interface Clip {
+  title: string; // player title bar
+  src: string;
+  poster: string;
+}
+export const videos = {
+  intro: {
+    title: "Intro.mov",
+    src: "/video/pitch/intro.mp4",
+    poster: "/video/pitch/intro.jpg",
+    // Armaan finishes "let's get into how the website works": move to the corner.
+    shrinkAt: 32.6,
+  },
+  // Evidence and Summary have no video yet.
+  files: {
+    problem: { title: "Problem.mov", src: "/video/pitch/problem.mp4", poster: "/video/pitch/problem.jpg" },
+    solution: { title: "Solution.mov", src: "/video/pitch/solution.mp4", poster: "/video/pitch/solution.jpg" },
+    economics: { title: "Economics.mov", src: "/video/pitch/economics.mp4", poster: "/video/pitch/economics.jpg" },
+    plan: { title: "Implementation.mov", src: "/video/pitch/plan.mp4", poster: "/video/pitch/plan.jpg" },
+  } as Partial<Record<PitchFile["id"], Clip>>,
+  play: "Play",
+  pause: "Pause",
+  back: "Back 5 seconds",
+  skip: "Skip 5 seconds",
+  sound: "Tap for sound",
+  close: "Close video",
+};
+
 /* 2. DESKTOP ----------------------------------------------------------- */
 export const desktop = {
   menu: {

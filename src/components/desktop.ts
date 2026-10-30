@@ -140,9 +140,11 @@ export function setupDesktop(os: HTMLElement, onShutdown: () => void) {
     w.style.top = `${y}px`;
   };
 
-  os.addEventListener("pointerdown", (e) => {
+  // Listens on the document so the video player, which sits in its own
+  // layer above the screen, drags the same way.
+  document.addEventListener("pointerdown", (e) => {
     const t = e.target as HTMLElement;
-    const bar = t.closest<HTMLElement>(".mw__bar");
+    const bar = t.closest<HTMLElement>(".os .mw__bar, .vp-layer .mw__bar");
     if (!bar || t.closest(".mw__close") || e.button !== 0 || !html.classList.contains("mode-zoom")) return;
     e.preventDefault(); // no text selection while dragging
     endDrag();

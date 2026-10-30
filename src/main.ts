@@ -6,6 +6,7 @@ import { escape } from "./rich";
 import { renderDesk, setupDesk } from "./components/desk";
 import { renderDesktop, setupDesktop } from "./components/desktop";
 import { setupWindows, type WindowId } from "./components/fileWindow";
+import { setupVideos } from "./components/videos";
 
 document.documentElement.classList.add("js");
 history.scrollRestoration = "manual";
@@ -23,10 +24,20 @@ let pending = location.hash.match(/^#file-(\w+)$/)?.[1] as WindowId | undefined;
 
 const os = app.querySelector<HTMLElement>(".os")!;
 const desktop = setupDesktop(os, () => deskCtl.powerOff());
-const windows = setupWindows(os, (id) => desktop.markRead(id));
+const videos = setupVideos(os);
+const windows = setupWindows(
+  os,
+  (id) => {
+    desktop.markRead(id);
+    videos.file(id);
+  },
+  () => videos.closeFile(),
+);
 const deskCtl = setupDesk(app, os, {
   onReached: (instant) => {
     desktop.start(instant);
+    // A deep link goes straight to its file, without the intro.
+    if (!pending) videos.intro(instant);
     if (pending) {
       windows.open(pending);
       pending = undefined;
@@ -34,9 +45,13 @@ const deskCtl = setupDesk(app, os, {
   },
   onShutdown: () => {
     windows.close();
+    videos.stop();
     desktop.stop();
   },
 });
+
+// The click on the power button lets the intro play with sound later.
+app.querySelector(".desk__power")!.addEventListener("click", () => videos.prime());
 
 app.querySelector(".skip-link")!.addEventListener("click", (e) => {
   e.preventDefault();

@@ -50,7 +50,7 @@ function trashBody(): string {
 }
 
 /** One document window at a time, on top of the desktop. */
-export function setupWindows(os: HTMLElement, onOpen: (id: WindowId) => void = () => {}) {
+export function setupWindows(os: HTMLElement, onOpen: (id: WindowId) => void = () => {}, onClose: () => void = () => {}) {
   const layer = os.querySelector<HTMLElement>(".os__windows")!;
   let opener: HTMLElement | null = null;
 
@@ -58,6 +58,7 @@ export function setupWindows(os: HTMLElement, onOpen: (id: WindowId) => void = (
     if (!layer.firstChild) return;
     layer.replaceChildren();
     opener?.focus({ preventScroll: true });
+    onClose();
   };
 
   const open = (id: WindowId, from?: HTMLElement | null) => {
