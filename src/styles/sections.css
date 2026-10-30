@@ -450,23 +450,21 @@ html.mode-zoom body {
   background: var(--os-face);
   font-weight: 600;
 }
-/* Close box with an × in it, so it's obvious how to close a window */
+/* Close box with an × in it, filling the title bar's top-left corner */
 .mw__close {
   position: absolute;
   z-index: 1;
-  left: 0.6em;
-  top: 50%;
+  top: 0;
+  left: 0;
+  bottom: 0;
   display: grid;
   place-items: center;
-  width: 1.3em;
-  height: 1.3em;
-  transform: translateY(-50%);
+  aspect-ratio: 1;
   background: var(--os-face);
-  border: 1px solid var(--os-line);
-  box-shadow: 0 0 0 2px var(--os-face);
+  border-right: 1px solid var(--os-line);
   color: var(--os-line);
   font-family: var(--font-body);
-  font-size: 1.1em;
+  font-size: 1.15em;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
