@@ -450,22 +450,34 @@ html.mode-zoom body {
   background: var(--os-face);
   font-weight: 600;
 }
+/* Close box with an × in it, so it's obvious how to close a window */
 .mw__close {
   position: absolute;
   z-index: 1;
   left: 0.6em;
   top: 50%;
-  width: 0.85em;
-  height: 0.85em;
+  display: grid;
+  place-items: center;
+  width: 1.3em;
+  height: 1.3em;
   transform: translateY(-50%);
   background: var(--os-face);
   border: 1px solid var(--os-line);
   box-shadow: 0 0 0 2px var(--os-face);
+  color: var(--os-line);
+  font-family: var(--font-body);
+  font-size: 1.1em;
+  font-weight: 600;
+  line-height: 1;
   cursor: pointer;
+}
+.mw__close span {
+  margin-top: -0.08em;
 }
 .mw__close:hover,
 .mw__close:focus-visible {
   background: var(--os-line);
+  color: var(--os-face);
   outline: none;
 }
 .mw__body {

@@ -9,7 +9,7 @@ export function chrome(title: string, body: string, opts: { cls?: string; close?
   return `
     <div class="mw ${opts.cls ?? ""}" ${opts.attrs ?? ""}>
       <header class="mw__bar">
-        ${opts.close ? `<button class="mw__close" type="button" aria-label="${escape(opts.close)}"></button>` : ""}
+        ${opts.close ? `<button class="mw__close" type="button" aria-label="${escape(opts.close)}"><span aria-hidden="true">×</span></button>` : ""}
         <span class="mw__title">${rich(title)}</span>
       </header>
       ${body}
