@@ -1672,30 +1672,6 @@ html.mode-zoom body {
   font-size: 14px;
   visibility: visible;
 }
-/* A file with a video: the window makes room, the video docks beside it */
-.mode-zoom .os.has-clip .win {
-  left: 2%;
-  right: 33%;
-  transition: right 0.3s ease;
-}
-@media (max-width: 760px) {
-  /* Phones: a smaller player, and room to scroll the text clear of it */
-  .mode-still .vp {
-    width: min(48vw, 210px);
-  }
-  body.has-clip .win__body {
-    padding-bottom: 42vw;
-  }
-}
-/* Narrower window beside a video: the six tabs still fit */
-.mode-zoom .os.has-clip .win__steps {
-  gap: 0;
-  padding-inline: 0.3rem;
-  font-size: 0.72rem;
-}
-.mode-zoom .os.has-clip .win__steps button {
-  padding-inline: 0.5rem;
-}
 .mode-still .vp-layer {
   z-index: 60; /* above the full-screen file window on phones */
 }

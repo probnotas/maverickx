@@ -48,7 +48,7 @@ export function setupVideos(os: HTMLElement) {
 
   // What is loaded: the intro, a file's overview, or nothing.
   let current: "intro" | PitchFile["id"] | null = null;
-  type Size = "big" | "mini" | "dock";
+  type Size = "big" | "mini";
   let size: Size = "mini";
   let moved = false; // dragged by its title bar: stay where it was put
   let introDone = false;
@@ -74,9 +74,7 @@ export function setupVideos(os: HTMLElement) {
     });
   };
 
-  // Fits the window to the screen: big and centred (intro), small in the
-  // bottom corner (intro over the folder), or docked top right beside a file
-  // window, which makes room for it so no text sits underneath.
+  // Fits the window to the screen: big and centred, or small in the corner.
   const place = (to: Size, animate: boolean) => {
     size = to;
     const still = html.classList.contains("mode-still");
@@ -91,8 +89,6 @@ export function setupVideos(os: HTMLElement) {
     // Nothing may animate under the big player (the "Start here" nudge did,
     // and every bounce made the video's edges flicker).
     os.classList.toggle("has-big-clip", to === "big" && !still);
-    os.classList.toggle("has-clip", to === "dock");
-    document.body.classList.toggle("has-clip", to === "dock");
     gsap.killTweensOf(el);
     if (still) {
       el.removeAttribute("style");
@@ -112,10 +108,6 @@ export function setupVideos(os: HTMLElement) {
       w = Math.min(W * 0.86, ((H - top0) * 0.88 - chromeH) * (16 / 9));
       x = (W - w) / 2;
       y = top0 + (H - top0 - (w * 9) / 16 - chromeH) / 2;
-    } else if (to === "dock") {
-      w = W * 0.29;
-      x = W - w - W * 0.02;
-      y = em * 3.2; // level with the file window's top edge
     } else {
       w = Math.max(220, W * 0.3);
       x = W - w - W * 0.02;
@@ -166,8 +158,7 @@ export function setupVideos(os: HTMLElement) {
     if (el.hidden) return;
     video.pause();
     current = null;
-    os.classList.remove("has-clip", "has-big-clip");
-    document.body.classList.remove("has-clip");
+    os.classList.remove("has-big-clip");
     gsap.to(el, {
       autoAlpha: 0,
       duration: 0.3,
@@ -202,14 +193,13 @@ export function setupVideos(os: HTMLElement) {
     });
   };
 
-  /** A file window opened: play its overview, docked beside the window. */
+  /** A file window opened: play its overview in the corner. */
   const file = (id: string) => {
     if (current === id) return;
     const clip = v.files[id as PitchFile["id"]];
     if (!clip || dismissed.has(id)) {
-      // Let the intro finish, docked beside a file without a video of its own.
-      if (current === "intro" && !el.hidden) place("dock", true);
-      else if (current !== "intro") hide();
+      // Let the intro finish over a file without a video of its own.
+      if (current !== "intro") hide();
       return;
     }
     const wasOpen = !el.hidden && current !== null;
@@ -217,15 +207,14 @@ export function setupVideos(os: HTMLElement) {
     moved = false;
     load(clip);
     if (video.currentTime > 0) video.currentTime = 0;
-    if (wasOpen) place("dock", size !== "dock");
-    else show("dock");
+    if (wasOpen) place("mini", size === "big");
+    else show("mini");
     play();
   };
 
   /** A file window closed. */
   const closeFile = () => {
-    if (current === "intro") place("mini", true);
-    else if (current) hide();
+    if (current && current !== "intro") hide();
   };
 
   // Controls

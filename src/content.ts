@@ -265,11 +265,12 @@ export const videos = {
     // Armaan finishes "let's get into how the website works": move to the corner.
     shrinkAt: 32.6,
   },
-  // Evidence and Summary have no video yet.
+  // Summary has no video.
   files: {
     problem: { title: "Problem.mov", src: "/video/pitch/problem.mp4", poster: "/video/pitch/problem.jpg" },
     solution: { title: "Solution.mov", src: "/video/pitch/solution.mp4", poster: "/video/pitch/solution.jpg" },
     economics: { title: "Economics.mov", src: "/video/pitch/economics.mp4", poster: "/video/pitch/economics.jpg" },
+    evidence: { title: "Evidence.mov", src: "/video/pitch/evidence.mp4", poster: "/video/pitch/evidence.jpg" },
     plan: { title: "Implementation.mov", src: "/video/pitch/plan.mp4", poster: "/video/pitch/plan.jpg" },
   } as Partial<Record<PitchFile["id"], Clip>>,
   play: "Play",
